@@ -3,6 +3,8 @@ use std::path::Path;
 use std::ffi::OsStr;
 use std::io::Result;
 
+use regex::Regex;
+
 const TARGET_DIR:&str = "/home/erik/Downloads";
 
 fn get_extension(filename: &str) -> Option<&str> {
@@ -30,7 +32,31 @@ fn make_directories(extensions:&Vec<String>) -> Result<()> {
 
 fn move_files(paths:&Vec<String>) -> Result<()> {
     for path in paths {
-        println!("name: {}", path);
+        let re = Regex::new(r"[^\\/]*\..*").unwrap();
+        if !re.is_match(path) {
+            continue;
+        }
+        let extension = match get_extension(&path) {
+            Some(e) => e,
+            None => continue,
+        };
+        let name = re.find(path).unwrap().as_str();
+        let location = re.replace(path, "");
+
+        let mut new_name = location.to_string();
+
+        new_name.push_str(extension);
+        new_name.push_str("/");
+        new_name.push_str(name);
+
+        println!("name: {}", name);
+        println!("path: {}", location);
+        println!("extension: {}", extension);
+
+        match fs::rename(path, new_name) {
+            Ok(_v) => println!("[success] Renamed File"),
+            Err(e) => println!("[Fail] {}", e),
+        }
     };
     Ok(())
 }
