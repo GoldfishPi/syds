@@ -4,7 +4,7 @@ extern crate regex;
 extern crate structopt;
 
 use std::fs;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::ffi::OsStr;
 use std::io::Result;
 use std::sync::mpsc::channel;
@@ -20,7 +20,7 @@ use notify::{Watcher, RecursiveMode, watcher};
 #[structopt(name = "syds")]
 struct Cli {
     #[structopt(parse(from_os_str))]
-    path: std::path::PathBuf,
+    path: PathBuf,
 
     #[structopt(short, long)]
     daemon: bool,
@@ -74,7 +74,7 @@ fn move_files(paths:&Vec<String>) -> Result<()> {
     return Ok(());
 }
 
-fn org_files(current_dir:&std::path::PathBuf) -> Result<()> {
+fn org_files(current_dir:&PathBuf) -> Result<()> {
     let path_buffers = fs::read_dir(&current_dir).unwrap();
 
     let mut extensions: Vec<String> = vec![];
