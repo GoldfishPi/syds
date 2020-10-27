@@ -7,7 +7,6 @@ use std::fs;
 use std::path::Path;
 use std::ffi::OsStr;
 use std::io::Result;
-use std::env;
 use std::sync::mpsc::channel;
 use std::time::Duration;
 
@@ -21,7 +20,7 @@ use notify::{Watcher, RecursiveMode, watcher};
 #[structopt(name = "syds")]
 struct Cli {
     #[structopt(parse(from_os_str))]
-    path: Option<std::path::PathBuf>,
+    path: std::path::PathBuf,
 
     #[structopt(short, long)]
     daemon: bool,
@@ -107,24 +106,19 @@ fn org_files(current_dir:&std::path::PathBuf) -> Result<()> {
 fn main() -> Result<()> {
     let args = Cli::from_args();
 
-    let current_dir = match args.path {
-        Some(v) => v,
-        None => env::current_dir()?
-    };
-
     if args.daemon {
         let (tx, rx) = channel();
 
         let mut w = watcher(tx, Duration::from_secs(args.update_time)).unwrap();
-        w.watch(&current_dir, RecursiveMode::Recursive).unwrap();
+        w.watch(&args.path, RecursiveMode::Recursive).unwrap();
 
         loop {
             match rx.recv() {
-                Ok(_event) => org_files(&current_dir)?,
+                Ok(_event) => org_files(&args.path)?,
                 Err(err) => panic!("watch err: {}", err)
             }
         }
     } 
 
-    org_files(&current_dir)
+    org_files(&args.path)
 }
