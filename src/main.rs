@@ -76,7 +76,7 @@ fn main() -> Result<()> {
         let extension_option = get_extension(&filename);
         let extension = match extension_option {
             Some(x) => x,
-            None => ""
+            None => continue
         };
 
         paths.push(filename.to_string());
@@ -88,12 +88,12 @@ fn main() -> Result<()> {
 
     match make_directories(&extensions, &current_dir.display().to_string()) {
         Ok(_v) => println!("[success] Made Directories"),
-        Err(e) => println!("[Fail] {}", e)
+        Err(e) => panic!(e)
     };
 
     match move_files(&paths) {
         Ok(_v) => println!("[success] Moved Files"),
-        Err(e) => println!("[Fail] {}", e)
+        Err(e) => panic!(e)
     };
 
     return Ok(());
