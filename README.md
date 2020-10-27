@@ -2,7 +2,14 @@
 sort your download sh!t
 organizes the contents of a directory by extension
 
-## example
+## Install
+```bash
+$ cargo install syds
+```
+
+## Usage
+
+Basic
 ```bash
 $ syds /path/to/dir
 ```
