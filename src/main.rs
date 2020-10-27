@@ -47,7 +47,6 @@ fn make_directories(extensions:&Vec<String>, current_path:&str) -> Result<()> {
             continue
         };
 
-        println!("making extension: {}", extension);
         fs::create_dir(path)?;
     }
     Ok(())
@@ -75,14 +74,7 @@ fn move_files(paths:&Vec<String>) -> Result<()> {
         new_name.push_str("/");
         new_name.push_str(name);
 
-        println!("name: {}", name);
-        println!("path: {}", location);
-        println!("extension: {}", extension);
-
-        match fs::rename(path, new_name) {
-            Ok(_v) => println!("[success] Renamed File"),
-            Err(e) => println!("[Fail] {}", e),
-        }
+        fs::rename(path, new_name)?;
     };
     Ok(())
 }
