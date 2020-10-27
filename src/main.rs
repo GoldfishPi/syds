@@ -2,10 +2,9 @@ use std::fs;
 use std::path::Path;
 use std::ffi::OsStr;
 use std::io::Result;
+use std::env;
 
 use regex::Regex;
-
-const TARGET_DIR:&str = "/home/erik/Downloads";
 
 fn get_extension(filename: &str) -> Option<&str> {
     Path::new(filename)
@@ -13,10 +12,10 @@ fn get_extension(filename: &str) -> Option<&str> {
         .and_then(OsStr::to_str)
 }
 
-fn make_directories(extensions:&Vec<String>) -> Result<()> {
+fn make_directories(extensions:&Vec<String>, current_path:&str) -> Result<()> {
     for extension in extensions {
 
-        let mut path:String = TARGET_DIR.to_owned();
+        let mut path:String = current_path.to_owned();
         path.push_str("/");
         path.push_str(&extension);
 
@@ -61,11 +60,15 @@ fn move_files(paths:&Vec<String>) -> Result<()> {
     Ok(())
 }
 
-fn main() {
-    let path_buffers = fs::read_dir(&TARGET_DIR).unwrap();
+fn main() -> Result<()> {
+
+    let current_dir = env::current_dir()?;
+
+    let path_buffers = fs::read_dir(&current_dir).unwrap();
 
     let mut extensions: Vec<String> = vec![];
     let mut paths: Vec<String> = vec![];
+    
 
     for buffer in path_buffers {
         let filename = buffer.unwrap().path().into_os_string().into_string().unwrap(); 
@@ -83,7 +86,7 @@ fn main() {
     extensions.sort();
     extensions.dedup();
 
-    match make_directories(&extensions) {
+    match make_directories(&extensions, &current_dir.display().to_string()) {
         Ok(_v) => println!("[success] Made Directories"),
         Err(e) => println!("[Fail] {}", e)
     };
@@ -93,5 +96,5 @@ fn main() {
         Err(e) => println!("[Fail] {}", e)
     };
 
-    println!("[Finish]");
+    return Ok(());
 }
