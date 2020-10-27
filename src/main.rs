@@ -26,8 +26,8 @@ struct Cli {
     #[structopt(short, long)]
     daemon: bool,
 
-    #[structopt(short, long)]
-    update_time:Option<u64>
+    #[structopt(short, long, default_value = "10")]
+    update_time:u64
 }
 
 fn get_extension(filename: &str) -> Option<&str> {
@@ -43,13 +43,9 @@ fn make_directories(extensions:&Vec<String>, current_path:&str) -> Result<()> {
         path.push_str("/");
         path.push_str(&extension);
 
-        if extension == "" || Path::new(&path).exists()  {
-            continue
-        };
-
         fs::create_dir(path)?;
     }
-    Ok(())
+    return Ok(());
 }
 
 fn move_files(paths:&Vec<String>) -> Result<()> {
@@ -76,7 +72,7 @@ fn move_files(paths:&Vec<String>) -> Result<()> {
 
         fs::rename(path, new_name)?;
     };
-    Ok(())
+    return Ok(());
 }
 
 fn org_files(current_dir:&std::path::PathBuf) -> Result<()> {
@@ -116,15 +112,10 @@ fn main() -> Result<()> {
         None => env::current_dir()?
     };
 
-    let update_time = match args.update_time {
-        Some(v) => v,
-        None => 10
-    };
-
     if args.daemon {
         let (tx, rx) = channel();
 
-        let mut w = watcher(tx, Duration::from_secs(update_time)).unwrap();
+        let mut w = watcher(tx, Duration::from_secs(args.update_time)).unwrap();
         w.watch(&current_dir, RecursiveMode::Recursive).unwrap();
 
         loop {
@@ -133,7 +124,7 @@ fn main() -> Result<()> {
                 Err(err) => panic!("watch err: {}", err)
             }
         }
-    } else {
-        org_files(&current_dir)
-    }
+    } 
+
+    org_files(&current_dir)
 }
