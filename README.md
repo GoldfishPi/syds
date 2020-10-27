@@ -1,5 +1,6 @@
 # SYDS
-sort your download sh!t
+sort your download sh!t 
+
 organizes the contents of a directory by extension
 
 ## Install
