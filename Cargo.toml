@@ -1,5 +1,5 @@
 [package]
-name = "download-manager"
+name = "syds"
 version = "0.1.0"
 authors = ["Erik Badger <erikbadger777@gmail.com>"]
 edition = "2018"
