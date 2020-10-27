@@ -5,6 +5,13 @@ use std::io::Result;
 use std::env;
 
 use regex::Regex;
+use structopt::StructOpt;
+
+#[derive(StructOpt)]
+struct Cli {
+    #[structopt(parse(from_os_str))]
+    path: Option<std::path::PathBuf>
+}
 
 fn get_extension(filename: &str) -> Option<&str> {
     Path::new(filename)
@@ -62,7 +69,12 @@ fn move_files(paths:&Vec<String>) -> Result<()> {
 
 fn main() -> Result<()> {
 
-    let current_dir = env::current_dir()?;
+    let args = Cli::from_args();
+
+    let current_dir = match args.path {
+        Some(v) => v,
+        None => env::current_dir()?
+    };
 
     let path_buffers = fs::read_dir(&current_dir).unwrap();
 
