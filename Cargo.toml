@@ -3,6 +3,8 @@ name = "syds"
 version = "0.1.0"
 authors = ["Erik Badger <erikbadger777@gmail.com>"]
 edition = "2018"
+license = "MIT"
+description = "Sorts files in a directory by extension"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
