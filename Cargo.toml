@@ -9,3 +9,4 @@ edition = "2018"
 [dependencies]
 regex = "1"
 structopt = "0.3.13"
+notify = "4.0.0"

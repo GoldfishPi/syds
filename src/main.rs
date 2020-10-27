@@ -1,16 +1,32 @@
+
+extern crate notify;
+extern crate regex;
+extern crate structopt;
+
 use std::fs;
 use std::path::Path;
 use std::ffi::OsStr;
 use std::io::Result;
 use std::env;
+use std::sync::mpsc::channel;
+use std::time::Duration;
 
 use regex::Regex;
 use structopt::StructOpt;
 
+use notify::{Watcher, RecursiveMode, watcher};
+
+
 #[derive(StructOpt)]
 struct Cli {
     #[structopt(parse(from_os_str))]
-    path: Option<std::path::PathBuf>
+    path: Option<std::path::PathBuf>,
+
+    #[structopt(short, long)]
+    daemon: bool,
+
+    #[structopt(short, long)]
+    update_time:Option<u64>
 }
 
 fn get_extension(filename: &str) -> Option<&str> {
@@ -39,13 +55,16 @@ fn make_directories(extensions:&Vec<String>, current_path:&str) -> Result<()> {
 fn move_files(paths:&Vec<String>) -> Result<()> {
     for path in paths {
         let re = Regex::new(r"[^\\/]*\..*").unwrap();
+
         if !re.is_match(path) {
             continue;
         }
+
         let extension = match get_extension(&path) {
             Some(e) => e,
             None => continue,
         };
+
         let name = re.find(path).unwrap().as_str();
         let location = re.replace(path, "");
 
@@ -67,15 +86,7 @@ fn move_files(paths:&Vec<String>) -> Result<()> {
     Ok(())
 }
 
-fn main() -> Result<()> {
-
-    let args = Cli::from_args();
-
-    let current_dir = match args.path {
-        Some(v) => v,
-        None => env::current_dir()?
-    };
-
+fn org_files(current_dir:&std::path::PathBuf) -> Result<()> {
     let path_buffers = fs::read_dir(&current_dir).unwrap();
 
     let mut extensions: Vec<String> = vec![];
@@ -98,15 +109,44 @@ fn main() -> Result<()> {
     extensions.sort();
     extensions.dedup();
 
-    match make_directories(&extensions, &current_dir.display().to_string()) {
-        Ok(_v) => println!("[success] Made Directories"),
-        Err(e) => panic!(e)
-    };
-
-    match move_files(&paths) {
-        Ok(_v) => println!("[success] Moved Files"),
-        Err(e) => panic!(e)
-    };
+    make_directories(&extensions, &current_dir.display().to_string())?;
+    move_files(&paths)?; 
 
     return Ok(());
+}
+
+fn main() -> Result<()> {
+    let args = Cli::from_args();
+
+    let current_dir = match args.path {
+        Some(v) => v,
+        None => env::current_dir()?
+    };
+
+    let update_time = match args.update_time {
+        Some(v) => v,
+        None => 10
+    };
+
+    if args.daemon {
+        let (tx, rx) = channel();
+
+        let mut w = watcher(tx, Duration::from_secs(update_time)).unwrap();
+        w.watch(&current_dir, RecursiveMode::Recursive).unwrap();
+
+        loop {
+            match rx.recv() {
+                Ok(event) => {
+                    println!("{:?}", event);
+                    org_files(&current_dir)?;
+                },
+                Err(err) => panic!("watch err: {}", err)
+            }
+        }
+
+        println!("Running in daemon mode");
+        Ok(())
+    } else {
+        org_files(&current_dir)
+    }
 }
