@@ -1,7 +1,7 @@
 # SYDS
-sort your download sh!t 
+Sort your download sh!t.
 
-organizes the contents of a directory by extension
+Organizes the contents of a directory by extension.
 
 ## Install
 ```bash
