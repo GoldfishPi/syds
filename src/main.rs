@@ -136,16 +136,10 @@ fn main() -> Result<()> {
 
         loop {
             match rx.recv() {
-                Ok(event) => {
-                    println!("{:?}", event);
-                    org_files(&current_dir)?;
-                },
+                Ok(_event) => org_files(&current_dir)?,
                 Err(err) => panic!("watch err: {}", err)
             }
         }
-
-        println!("Running in daemon mode");
-        Ok(())
     } else {
         org_files(&current_dir)
     }
