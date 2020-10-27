@@ -18,6 +18,7 @@ use notify::{Watcher, RecursiveMode, watcher};
 
 
 #[derive(StructOpt)]
+#[structopt(name = "syds")]
 struct Cli {
     #[structopt(parse(from_os_str))]
     path: Option<std::path::PathBuf>,
