@@ -69,27 +69,24 @@ fn move_files(paths:&Vec<String>) -> Result<()> {
 }
 
 fn org_files(current_dir:&PathBuf) -> Result<()> {
-    let path_buffers = fs::read_dir(&current_dir)?;
+    let mut path_buffers = fs::read_dir(&current_dir)?
+            .map(|res| res.map(|e| e.path()).unwrap().into_os_string().into_string().unwrap())
+            .map(|res| (get_extension(&res).unwrap().to_owned(), res.to_owned()))
+            .collect::<Vec<_>>();
 
-    let mut extensions: Vec<String> = vec![];
-    let mut paths: Vec<String> = vec![];
-    
+    path_buffers.sort();
+    path_buffers.dedup();
 
-    for buffer in path_buffers {
-        let filename = buffer?.path().into_os_string().into_string().unwrap(); 
+    let extensions = path_buffers
+        .to_owned()
+        .into_iter()
+        .map(|x| x.0.to_owned())
+        .collect::<Vec<_>>();
 
-        let extension_option = get_extension(&filename);
-        let extension = match extension_option {
-            Some(x) => x,
-            None => continue
-        };
-
-        paths.push(filename.to_string());
-        extensions.push(extension.to_string());
-    };
-
-    extensions.sort();
-    extensions.dedup();
+    let paths = path_buffers
+        .into_iter()
+        .map(|x| x.1.to_owned())
+        .collect::<Vec<_>>();
 
     make_directories(&extensions, &current_dir.display().to_string())?;
     move_files(&paths)?; 
