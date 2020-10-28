@@ -69,14 +69,14 @@ fn move_files(paths:&Vec<String>) -> Result<()> {
 }
 
 fn org_files(current_dir:&PathBuf) -> Result<()> {
-    let path_buffers = fs::read_dir(&current_dir).unwrap();
+    let path_buffers = fs::read_dir(&current_dir)?;
 
     let mut extensions: Vec<String> = vec![];
     let mut paths: Vec<String> = vec![];
     
 
     for buffer in path_buffers {
-        let filename = buffer.unwrap().path().into_os_string().into_string().unwrap(); 
+        let filename = buffer?.path().into_os_string().into_string().unwrap(); 
 
         let extension_option = get_extension(&filename);
         let extension = match extension_option {
