@@ -63,13 +63,7 @@ fn move_files(paths:&Vec<String>) -> Result<()> {
         let name = re.find(path).unwrap().as_str();
         let location = re.replace(path, "");
 
-        let mut new_name = location.to_string();
-
-        new_name.push_str(extension);
-        new_name.push_str("/");
-        new_name.push_str(name);
-
-        fs::rename(path, new_name)?;
+        fs::rename(path, format!("{}{}/{}", location, extension, name))?;
     };
     return Ok(());
 }
