@@ -29,10 +29,14 @@ struct Cli {
     update_time:u64
 }
 
-fn get_extension(filename: &str) -> Option<&str> {
-    Path::new(filename)
+fn get_extension(filename: &str) -> String {
+    let ext = Path::new(filename)
         .extension()
-        .and_then(OsStr::to_str)
+        .and_then(OsStr::to_str);
+    match ext {
+        None => "_".to_owned(),
+        Some(e) => e.to_owned()
+    }
 }
 
 fn make_directories(extensions:&Vec<String>, current_path:&str) -> Result<()> {
@@ -41,6 +45,10 @@ fn make_directories(extensions:&Vec<String>, current_path:&str) -> Result<()> {
         let mut path:String = current_path.to_owned();
         path.push_str("/");
         path.push_str(&extension);
+
+        if Path::new(&path).is_dir() {
+            continue;
+        }
 
         fs::create_dir(path)?;
     }
@@ -55,14 +63,10 @@ fn move_files(paths:&Vec<String>) -> Result<()> {
             continue;
         }
 
-        let extension = match get_extension(&path) {
-            Some(e) => e,
-            None => continue,
-        };
+        let extension = get_extension(&path);
 
         let name = re.find(path).unwrap().as_str();
         let location = re.replace(path, "");
-
         fs::rename(path, format!("{}{}/{}", location, extension, name))?;
     };
     return Ok(());
@@ -71,7 +75,10 @@ fn move_files(paths:&Vec<String>) -> Result<()> {
 fn org_files(current_dir:&PathBuf) -> Result<()> {
     let mut path_buffers = fs::read_dir(&current_dir)?
             .map(|res| res.map(|e| e.path()).unwrap().into_os_string().into_string().unwrap())
-            .map(|res| (get_extension(&res).unwrap().to_owned(), res.to_owned()))
+            .filter(|res| Path::new(&res).is_file())
+            .map(|res| {
+                (get_extension(&res), res.to_owned())
+            })
             .collect::<Vec<_>>();
 
     path_buffers.sort();
@@ -84,6 +91,7 @@ fn org_files(current_dir:&PathBuf) -> Result<()> {
         .collect::<Vec<_>>();
 
     let paths = path_buffers
+        .to_owned()
         .into_iter()
         .map(|x| x.1.to_owned())
         .collect::<Vec<_>>();
