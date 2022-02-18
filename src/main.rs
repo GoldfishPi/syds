@@ -65,9 +65,28 @@ fn move_files(paths:&Vec<String>) -> Result<()> {
 
         let extension = get_extension(&path);
 
-        let name = re.find(path).unwrap().as_str();
+        let name = re
+            .find(path)
+            .unwrap()
+            .as_str();
+
+        let file_name = str::replace(&name, "./", "");
         let location = re.replace(path, "");
-        fs::rename(path, format!("{}{}/{}", location, extension, name))?;
+
+        let dir = Path::new(&extension);
+
+        let matching_files: Vec<String> = fs::read_dir(dir)?
+            .map(|res| res.map(|e| e.path()).unwrap().into_os_string().into_string().unwrap())
+            .filter(|s| s.contains(&file_name))
+            .collect();
+
+        let new_path: String = if matching_files.len() == 0 {
+             format!("{}{}/{}", location, extension, name)
+        } else {
+             format!("{}{}/({}){}", location, extension, matching_files.len(), file_name)
+        };
+
+        fs::rename(path, new_path)?;
     };
     return Ok(());
 }
